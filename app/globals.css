@@ -1,0 +1,189 @@
+@import "tailwindcss";
+
+@theme static {
+  --color-*: initial;
+  --color-bg: light-dark(oklch(0.975 0.006 255), oklch(0.145 0.012 255));
+  --color-bg-translucent: light-dark(oklch(0.975 0.006 255 / 0.84), oklch(0.145 0.012 255 / 0.84));
+  --color-sidebar: light-dark(oklch(0.99 0.004 255), oklch(0.17 0.014 255));
+  --color-surface: light-dark(oklch(1 0 0), oklch(0.195 0.014 255));
+  --color-surface-2: light-dark(oklch(0.95 0.008 255), oklch(0.235 0.016 255));
+  --color-surface-3: light-dark(oklch(0.9 0.012 255), oklch(0.29 0.018 255));
+  --color-fg: light-dark(oklch(0.205 0.018 255), oklch(0.96 0.006 255));
+  --color-fg-muted: light-dark(oklch(0.42 0.02 255), oklch(0.76 0.014 255));
+  --color-fg-subtle: light-dark(oklch(0.47 0.018 255), oklch(0.68 0.014 255));
+  --color-border: light-dark(oklch(0.87 0.01 255), oklch(0.29 0.016 255));
+  --color-border-strong: light-dark(oklch(0.58 0.018 255), oklch(0.49 0.018 255));
+  --color-accent: light-dark(oklch(0.5 0.16 248), oklch(0.78 0.12 225));
+  --color-accent-hover: light-dark(oklch(0.45 0.16 248), oklch(0.83 0.1 225));
+  --color-accent-active: light-dark(oklch(0.41 0.15 248), oklch(0.87 0.08 225));
+  --color-accent-fg: light-dark(oklch(0.99 0.002 248), oklch(0.16 0.02 235));
+  --color-accent-soft: light-dark(oklch(0.92 0.035 235), oklch(0.27 0.045 235));
+  --color-accent-glow: light-dark(oklch(0.72 0.11 235 / 0.2), oklch(0.72 0.11 235 / 0.12));
+  --color-success: light-dark(oklch(0.43 0.12 155), oklch(0.76 0.13 155));
+  --color-success-soft: light-dark(oklch(0.93 0.035 155), oklch(0.26 0.035 155));
+  --color-danger: light-dark(oklch(0.5 0.17 25), oklch(0.75 0.14 25));
+  --color-danger-soft: light-dark(oklch(0.94 0.035 25), oklch(0.25 0.04 25));
+  --color-warning: light-dark(oklch(0.44 0.1 75), oklch(0.82 0.11 80));
+  --color-warning-soft: light-dark(oklch(0.95 0.035 85), oklch(0.26 0.035 75));
+  --color-violet: light-dark(oklch(0.5 0.15 290), oklch(0.78 0.1 290));
+  --color-violet-soft: light-dark(oklch(0.93 0.03 290), oklch(0.26 0.035 290));
+  --color-focus: light-dark(oklch(0.5 0.17 248), oklch(0.8 0.13 225));
+  --color-kbd: light-dark(oklch(0.38 0.015 255), oklch(0.72 0.012 255));
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  --text-*: initial;
+  --text-kbd: 0.6875rem;
+  --text-kbd--line-height: 0.875rem;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.5rem;
+  --text-2xl: clamp(1.375rem, 1.2045rem + 0.7273vw, 1.75rem);
+  --text-2xl--line-height: 1.25;
+  --text-3xl: clamp(1.75rem, 1.4091rem + 1.4545vw, 2.5rem);
+  --text-3xl--line-height: 1.15;
+  --text-timer: clamp(3.5rem, 2.5rem + 4vw, 6rem);
+
+  --spacing: 0.25rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.08);
+  --shadow-lg: 0 10px 30px oklch(0 0 0 / 0.18);
+  --shadow-accent: 0 0 24px var(--color-accent-glow);
+  --shadow-focus: 0 18px 50px oklch(0 0 0 / 0.18);
+
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --duration-fast: 120ms;
+
+  --opacity-disabled: 0.52;
+  --opacity-pulse: 0.55;
+
+  --width-sidebar: 15.5rem;
+  --width-focus-aside: 15rem;
+  --width-border-active: 0.1875rem;
+  --max-width-page: 96rem;
+  --max-width-prose: 36rem;
+  --max-width-auth-copy: 33rem;
+  --max-width-sign-in: 28rem;
+  --height-header: 4rem;
+  --height-chart: 7rem;
+  --size-glow: 25rem;
+  --right-glow: -8rem;
+  --left-glow: -10rem;
+  --top-glow: -10rem;
+  --size-auth-glow: 36rem;
+  --blur-glow: 64px;
+  --tracking-label: 0.12em;
+  --tracking-timer: -0.06em;
+  --grid-template-columns-dashboard: minmax(0, 1.7fr) minmax(18rem, 0.7fr);
+  --grid-template-columns-content: minmax(0, 1.35fr) minmax(18rem, 0.65fr);
+  --grid-template-columns-auth: minmax(25rem, 1.05fr) minmax(28rem, 0.95fr);
+  --background-image-focus-card: linear-gradient(135deg, var(--color-surface), color-mix(in oklch, var(--color-surface) 86%, var(--color-accent)));
+  --background-image-focus-line: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+
+  --z-sticky: 10;
+  --z-toast: 40;
+}
+
+:root {
+  color-scheme: light dark;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scrollbar-gutter: stable;
+  scroll-padding-block-start: var(--height-header);
+}
+
+body {
+  margin: 0;
+  min-block-size: 100dvh;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+p,
+h1,
+h2,
+h3 {
+  overflow-wrap: break-word;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+.animate-menu-in {
+  animation: menu-in var(--duration-base) var(--ease-out);
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--spacing) * -2));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (forced-colors: active) {
+  button,
+  a,
+  [aria-current="page"] {
+    border: 1px solid CanvasText;
+  }
+}
