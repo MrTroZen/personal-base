@@ -50,7 +50,7 @@ export function SignInForm({ configured }: { configured: boolean }) {
           type="email"
           autoComplete="username"
           inputMode="email"
-          placeholder="you@example.com"
+          placeholder="you@your-domain.com"
           required
           disabled={!configured}
           aria-invalid={state ? true : undefined}

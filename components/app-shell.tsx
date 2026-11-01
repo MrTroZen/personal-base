@@ -1,38 +1,32 @@
 "use client";
 
 import {
-  BriefcaseBusiness,
   CircleDollarSign,
-  Clock3,
   FileText,
   LayoutDashboard,
   Menu,
   LogOut,
-  PanelLeftClose,
-  Search,
   SquareKanban,
   X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const navigation = [
-  { label: "Workspace", icon: LayoutDashboard, href: "/" },
-  { label: "Projects", icon: BriefcaseBusiness, href: "/#projects" },
-  { label: "Tasks", icon: SquareKanban, href: "/#tasks" },
-  { label: "Sessions", icon: Clock3 },
-  { label: "Money", icon: CircleDollarSign },
-  { label: "Notes", icon: FileText },
+  { label: "Dashboard", icon: LayoutDashboard, href: "/" },
+  { label: "Projects & tasks", icon: SquareKanban, href: "/work" },
+  { label: "Money", icon: CircleDollarSign, href: "/money" },
+  { label: "Notes", icon: FileText, href: "/notes" },
 ];
 
 function Brand() {
   return (
     <div className="flex min-w-0 items-center gap-3">
-      <div className="grid size-9 shrink-0 place-items-center rounded-lg border border-accent/30 bg-accent-soft text-accent shadow-accent">
+      <div className="grid size-9 shrink-0 place-items-center rounded-lg border border-accent/30 bg-accent-soft text-accent">
         <span className="text-sm font-semibold tracking-tight">PB</span>
       </div>
       <div className="min-w-0">
@@ -50,14 +44,16 @@ function Navigation({ mobile = false, onNavigate }: { mobile?: boolean; onNaviga
       <ul className="space-y-1">
         {navigation.map((item) => {
           const Icon = item.icon;
+          const baseHref = item.href?.split("#")[0] ?? "";
+          const isCurrent = item.label === "Projects & tasks" ? pathname === "/work" || pathname.startsWith("/projects/") : Boolean(item.href && !item.href.includes("#") && (baseHref === "/" ? pathname === "/" : pathname.startsWith(baseHref)));
           return (
             <li key={item.label}>
               {item.href ? (
                 <Link
                   href={item.href}
-                  aria-current={item.label === "Workspace" && pathname === "/" ? "page" : undefined}
+                  aria-current={isCurrent ? "page" : undefined}
                   onClick={onNavigate}
-                  className={cn("group relative flex min-h-10 items-center gap-3 rounded-md px-3 text-sm font-medium text-fg-muted outline-none transition-colors duration-fast hover:bg-surface-2 hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus", item.label === "Workspace" && pathname === "/" && "bg-surface-2 text-fg")}
+                  className={cn("group relative flex min-h-10 items-center gap-3 rounded-md px-3 text-sm font-medium text-fg-muted outline-none transition-colors duration-fast hover:bg-surface-2 hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus", isCurrent && "bg-surface-2 text-fg")}
                 >
                   <Icon aria-hidden="true" className="size-4" />
                   {item.label}
@@ -88,7 +84,19 @@ type AppShellProps = {
 
 export function AppShell({ children, ownerEmail, ownerInitial, signOutAction }: AppShellProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      setMenuOpen(false);
+      window.requestAnimationFrame(() => menuButtonRef.current?.focus());
+    }
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [menuOpen]);
 
   return (
     <div className="min-h-dvh bg-bg text-fg">
@@ -106,21 +114,12 @@ export function AppShell({ children, ownerEmail, ownerInitial, signOutAction }: 
         <div className="flex min-h-0 flex-1 flex-col justify-between gap-8 overflow-y-auto p-4">
           <Navigation />
           <div className="space-y-3">
-            <div className="rounded-lg border border-border bg-surface/60 p-3">
-              <div className="mb-2 flex items-center gap-2 text-xs font-medium text-fg-muted">
-                <span className="size-1.5 rounded-full bg-success shadow-status" />
-                Secure session
-              </div>
-              <p className="text-xs leading-relaxed text-fg-subtle">
-                Verified with Supabase Auth for the configured owner.
-              </p>
-            </div>
             <div className="flex items-center gap-3 rounded-lg px-2 py-2">
               <div className="grid size-9 shrink-0 place-items-center rounded-full bg-surface-3 text-xs font-semibold text-fg">
                 {ownerInitial}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-fg">Your workspace</p>
+                <p className="flex items-center gap-2 truncate text-sm font-medium text-fg"><span className="size-1.5 shrink-0 rounded-full bg-success" aria-hidden="true" />Your workspace</p>
                 <p className="truncate text-xs text-fg-subtle" title={ownerEmail}>{ownerEmail}</p>
               </div>
               <form action={signOutAction}>
@@ -134,10 +133,11 @@ export function AppShell({ children, ownerEmail, ownerInitial, signOutAction }: 
       </aside>
 
       <div className="lg:pl-[var(--width-sidebar)]">
-        <header className="sticky top-0 z-sticky border-b border-border bg-bg-translucent backdrop-blur-xl">
+        <header className="sticky top-0 z-sticky border-b border-border bg-bg">
           <div className="flex h-header items-center gap-3 px-4 sm:px-6 lg:px-8">
             <div className="mr-auto flex min-w-0 items-center gap-3 lg:hidden">
               <Button
+                ref={menuButtonRef}
                 variant="ghost"
                 size="icon"
                 aria-label={menuOpen ? "Close navigation" : "Open navigation"}
@@ -151,22 +151,11 @@ export function AppShell({ children, ownerEmail, ownerInitial, signOutAction }: 
             </div>
 
             <div className="hidden items-center gap-2 text-sm lg:flex">
-              <span className="text-fg-subtle">Workspace</span>
+              <span className="text-fg-subtle">Personal Base</span>
               <span aria-hidden="true" className="text-border-strong">/</span>
-              <span className="font-medium text-fg">{pathname.startsWith("/projects/") ? "Project detail" : "Projects & tasks"}</span>
+              <span className="font-medium text-fg">{pathname.startsWith("/projects/") ? "Project detail" : pathname === "/work" ? "Projects & tasks" : pathname === "/notes" ? "Notes" : pathname === "/money" ? "Money" : "Dashboard"}</span>
             </div>
 
-            <div className="ml-auto hidden items-center gap-2 sm:flex">
-              <div className="hidden items-center gap-2 rounded-md border border-border bg-surface/70 px-3 py-2 text-xs text-fg-subtle md:flex">
-                <Search aria-hidden="true" className="size-3.5" />
-                <span>Search coming later</span>
-                <kbd className="ml-2 rounded-sm border border-border bg-surface-2 px-1.5 py-0.5 font-mono text-kbd">⌘ K</kbd>
-              </div>
-              <Button variant="ghost" size="icon" disabled title="Sidebar controls are unavailable in this preview">
-                <span className="sr-only">Collapse sidebar unavailable in preview</span>
-                <PanelLeftClose aria-hidden="true" />
-              </Button>
-            </div>
           </div>
 
           <div

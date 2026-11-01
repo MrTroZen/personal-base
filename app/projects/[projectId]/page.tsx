@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { ArrowLeft, Archive, CheckCircle2, Circle, Clock3 } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -10,6 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 import { statusLabels, taskStatuses, type Project, type Task } from "@/lib/work-data";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Project detail" };
 
 export default async function ProjectPage({ params }: { params: Promise<{ projectId: string }> }) {
   const owner = await getOwnerIdentity();
@@ -27,7 +29,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
 
   return <AppShell ownerEmail={owner.email} ownerInitial={owner.initial} signOutAction={signOut}>
     <div className="space-y-6">
-      <Button asChild variant="ghost" size="sm"><Link href="/"><ArrowLeft aria-hidden="true" />Back to workspace</Link></Button>
+      <Button asChild variant="ghost" size="sm"><Link href="/work#projects"><ArrowLeft aria-hidden="true" />Back to projects</Link></Button>
       <header className="rounded-xl border border-border bg-surface p-5 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div><div className="flex items-center gap-2"><h1 className="text-2xl font-semibold tracking-tight text-fg">{typedProject.name}</h1>{typedProject.archived_at && <span className="rounded-sm bg-warning-soft px-2 py-1 text-xs font-medium text-warning"><Archive aria-hidden="true" className="mr-1 inline size-3" />Archived</span>}</div><p className="mt-2 max-w-prose text-sm leading-relaxed text-fg-muted">{typedProject.description || "No description yet."}</p></div><p className="text-sm text-fg-muted tabular-nums">{complete} of {typedTasks.length} tasks complete</p></div>
       </header>

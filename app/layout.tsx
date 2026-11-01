@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Dashboard — Personal Base",
+  title: { default: "Personal Base", template: "%s — Personal Base" },
   description: "A private dashboard for focused personal work.",
 };
 

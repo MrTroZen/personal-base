@@ -6,7 +6,7 @@ import { SignInForm } from "@/app/sign-in/sign-in-form";
 import { getOwnerIdentity, isAuthConfigured } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  title: "Sign in — Personal Base",
+  title: "Sign in",
   description: "Sign in to your private personal work dashboard.",
 };
 
@@ -33,7 +33,7 @@ export default async function SignInPage() {
 
       <section className="hidden border-r border-border bg-sidebar/70 p-10 lg:flex lg:flex-col lg:justify-between xl:p-16" aria-labelledby="sign-in-context-title">
         <div className="flex items-center gap-3">
-          <div className="grid size-10 place-items-center rounded-lg border border-accent/30 bg-accent-soft text-sm font-semibold text-accent shadow-accent">
+          <div className="grid size-10 place-items-center rounded-lg border border-accent/30 bg-accent-soft text-sm font-semibold text-accent">
             PB
           </div>
           <div>
@@ -74,7 +74,7 @@ export default async function SignInPage() {
       <section className="flex min-w-0 items-center justify-center px-4 py-10 sm:px-8 lg:px-12" aria-labelledby="sign-in-title">
         <div className="w-full max-w-sign-in">
           <div className="mb-10 flex items-center gap-3 lg:hidden">
-            <div className="grid size-10 place-items-center rounded-lg border border-accent/30 bg-accent-soft text-sm font-semibold text-accent shadow-accent">
+            <div className="grid size-10 place-items-center rounded-lg border border-accent/30 bg-accent-soft text-sm font-semibold text-accent">
               PB
             </div>
             <div>
@@ -83,7 +83,7 @@ export default async function SignInPage() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-border bg-surface p-6 shadow-focus sm:p-8">
+          <div className="rounded-xl border border-border bg-surface p-6 sm:p-8">
             <div className="mb-8">
               <div className="mb-5 grid size-11 place-items-center rounded-lg border border-border bg-surface-2 text-accent">
                 <LockKeyhole aria-hidden="true" className="size-5" />

@@ -31,7 +31,7 @@
   --color-kbd: light-dark(oklch(0.38 0.015 255), oklch(0.72 0.012 255));
 
   --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace; /* taste-skill-ignore: elapsed time is a clock */
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
@@ -90,9 +90,6 @@
   --grid-template-columns-dashboard: minmax(0, 1.7fr) minmax(18rem, 0.7fr);
   --grid-template-columns-content: minmax(0, 1.35fr) minmax(18rem, 0.65fr);
   --grid-template-columns-auth: minmax(25rem, 1.05fr) minmax(28rem, 0.95fr);
-  --background-image-focus-card: linear-gradient(135deg, var(--color-surface), color-mix(in oklch, var(--color-surface) 86%, var(--color-accent)));
-  --background-image-focus-line: linear-gradient(90deg, transparent, var(--color-accent), transparent);
-
   --z-sticky: 10;
   --z-toast: 40;
 }
