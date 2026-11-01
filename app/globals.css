@@ -135,6 +135,12 @@ a {
   text-decoration: none;
 }
 
+button,
+a {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 p,
 h1,
 h2,

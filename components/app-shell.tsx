@@ -14,15 +14,16 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const navigation = [
-  { label: "Dashboard", icon: LayoutDashboard, current: true },
-  { label: "Projects", icon: BriefcaseBusiness },
-  { label: "Tasks", icon: SquareKanban },
+  { label: "Workspace", icon: LayoutDashboard, href: "/" },
+  { label: "Projects", icon: BriefcaseBusiness, href: "/#projects" },
+  { label: "Tasks", icon: SquareKanban, href: "/#tasks" },
   { label: "Sessions", icon: Clock3 },
   { label: "Money", icon: CircleDollarSign },
   { label: "Notes", icon: FileText },
@@ -43,6 +44,7 @@ function Brand() {
 }
 
 function Navigation({ mobile = false, onNavigate }: { mobile?: boolean; onNavigate?: () => void }) {
+  const pathname = usePathname();
   return (
     <nav aria-label={mobile ? "Mobile primary" : "Primary"}>
       <ul className="space-y-1">
@@ -50,14 +52,14 @@ function Navigation({ mobile = false, onNavigate }: { mobile?: boolean; onNaviga
           const Icon = item.icon;
           return (
             <li key={item.label}>
-              {item.current ? (
+              {item.href ? (
                 <Link
-                  href="/"
-                  aria-current="page"
+                  href={item.href}
+                  aria-current={item.label === "Workspace" && pathname === "/" ? "page" : undefined}
                   onClick={onNavigate}
-                  className="group relative flex min-h-10 items-center gap-3 rounded-md bg-surface-2 px-3 text-sm font-medium text-fg outline-none transition-colors duration-fast before:absolute before:inset-y-2 before:left-0 before:w-border-active before:rounded-full before:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                  className={cn("group relative flex min-h-10 items-center gap-3 rounded-md px-3 text-sm font-medium text-fg-muted outline-none transition-colors duration-fast hover:bg-surface-2 hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus", item.label === "Workspace" && pathname === "/" && "bg-surface-2 text-fg")}
                 >
-                  <Icon aria-hidden="true" className="size-4 text-accent" />
+                  <Icon aria-hidden="true" className="size-4" />
                   {item.label}
                 </Link>
               ) : (
@@ -86,6 +88,7 @@ type AppShellProps = {
 
 export function AppShell({ children, ownerEmail, ownerInitial, signOutAction }: AppShellProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <div className="min-h-dvh bg-bg text-fg">
@@ -150,7 +153,7 @@ export function AppShell({ children, ownerEmail, ownerInitial, signOutAction }: 
             <div className="hidden items-center gap-2 text-sm lg:flex">
               <span className="text-fg-subtle">Workspace</span>
               <span aria-hidden="true" className="text-border-strong">/</span>
-              <span className="font-medium text-fg">Dashboard</span>
+              <span className="font-medium text-fg">{pathname.startsWith("/projects/") ? "Project detail" : "Projects & tasks"}</span>
             </div>
 
             <div className="ml-auto hidden items-center gap-2 sm:flex">
