@@ -2,7 +2,7 @@
 
 ## Current repo state
 
-A production-ready Next.js App Router application provides an owner-protected, Supabase-backed personal workspace for projects, tasks, focus sessions, notes, and money. The dashboard is now the concise daily home screen: it combines the live persisted timer with real work-ahead, active-project, current-month money, and recent-note summaries without duplicating the full feature routes. The hosted database remains protected by the verified owner-only RLS model.
+A deployed Next.js App Router application provides an owner-protected, Supabase-backed personal workspace for projects, tasks, focus sessions, notes, and money. The dashboard is now the concise daily home screen: it combines the live persisted timer with real work-ahead, active-project, current-month money, and recent-note summaries without duplicating the full feature routes. The hosted database remains protected by the verified owner-only RLS model.
 
 ## Completed
 
@@ -59,6 +59,8 @@ A production-ready Next.js App Router application provides an owner-protected, S
 - Verified the dashboard and workspace at desktop and mobile widths in system Edge with no horizontal overflow, framework error overlay, or relevant console errors. The MCP browser runtime still failed during Windows sandbox initialization, so the approved regular-Playwright fallback was used.
 - Completed independent Impeccable design and technical critiques with no release-blocking finding, ran the deterministic detector with no findings, and reviewed the final surfaces against the current Vercel Web Interface Guidelines. Taste's remaining hairline findings are intentional rules in the established T-frame visual direction rather than new decoration.
 - Confirmed only `.env.example` is tracked, `.env.local`, `.env.owner-test.local`, and `.vercel` remain ignored, and no service-role key, password, test credential, or application secret is committed.
+- Pushed the completed product to GitHub `main` in commit `4583adf` and confirmed the existing Vercel project automatically deployed that exact commit to production. Vercel reports the deployment `Ready`; its build completed compilation, TypeScript, route generation, and output deployment successfully.
+- Verified the production alias at `https://personal-base-iota.vercel.app`: owner login works, the authenticated dashboard loads, the session survives refresh, sign-out returns to the owner screen, and anonymous private-route responses contain the expected Next.js redirect to `/sign-in`.
 
 ## Currently working on
 
