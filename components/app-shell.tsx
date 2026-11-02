@@ -6,6 +6,8 @@ import {
   LayoutDashboard,
   Menu,
   LogOut,
+  Search,
+  Settings,
   SquareKanban,
   X,
 } from "lucide-react";
@@ -14,6 +16,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { ThemePreferenceSync } from "@/components/theme-preference-sync";
 import { cn } from "@/lib/utils";
 
 const navigation = [
@@ -21,6 +24,8 @@ const navigation = [
   { label: "Projects & tasks", icon: SquareKanban, href: "/work" },
   { label: "Money", icon: CircleDollarSign, href: "/money" },
   { label: "Notes", icon: FileText, href: "/notes" },
+  { label: "Search", icon: Search, href: "/search" },
+  { label: "Settings", icon: Settings, href: "/settings" },
 ];
 
 function Brand() {
@@ -45,7 +50,7 @@ function Navigation({ mobile = false, onNavigate }: { mobile?: boolean; onNaviga
         {navigation.map((item) => {
           const Icon = item.icon;
           const baseHref = item.href?.split("#")[0] ?? "";
-          const isCurrent = item.label === "Projects & tasks" ? pathname === "/work" || pathname.startsWith("/projects/") : Boolean(item.href && !item.href.includes("#") && (baseHref === "/" ? pathname === "/" : pathname.startsWith(baseHref)));
+          const isCurrent = item.label === "Projects & tasks" ? pathname === "/work" || pathname.startsWith("/projects/") : item.label === "Settings" ? ["/settings", "/archive", "/data", "/about"].includes(pathname) : Boolean(item.href && !item.href.includes("#") && (baseHref === "/" ? pathname === "/" : pathname.startsWith(baseHref)));
           return (
             <li key={item.label}>
               {item.href ? (
@@ -100,6 +105,7 @@ export function AppShell({ children, ownerEmail, ownerInitial, signOutAction }: 
 
   return (
     <div className="min-h-dvh bg-bg text-fg">
+      <ThemePreferenceSync />
       <a
         href="#main-content"
         className="fixed left-2 top-2 z-toast -translate-y-[200%] rounded-md bg-surface px-4 py-2 text-sm font-medium text-fg shadow-lg outline-none transition-transform focus:translate-y-0 focus-visible:outline-2 focus-visible:outline-focus"
@@ -153,7 +159,7 @@ export function AppShell({ children, ownerEmail, ownerInitial, signOutAction }: 
             <div className="hidden items-center gap-2 text-sm lg:flex">
               <span className="text-fg-subtle">Personal Base</span>
               <span aria-hidden="true" className="text-border-strong">/</span>
-              <span className="font-medium text-fg">{pathname.startsWith("/projects/") ? "Project detail" : pathname === "/work" ? "Projects & tasks" : pathname === "/notes" ? "Notes" : pathname === "/money" ? "Money" : "Dashboard"}</span>
+              <span className="font-medium text-fg">{pathname.startsWith("/projects/") ? "Project detail" : pathname === "/work" ? "Projects & tasks" : pathname === "/notes" ? "Notes" : pathname === "/money" ? "Money" : pathname === "/search" ? "Search" : pathname === "/archive" ? "Archive" : pathname === "/data" ? "Data" : pathname === "/about" ? "About" : pathname === "/settings" ? "Settings" : "Dashboard"}</span>
             </div>
 
           </div>

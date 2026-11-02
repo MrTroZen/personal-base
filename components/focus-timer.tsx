@@ -4,8 +4,9 @@ import { Check, Clock3, Play, Square, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import type { WeekStart } from "@/lib/preferences";
 import { createClient } from "@/lib/supabase/client";
-import { OWNER_TIME_ZONE } from "@/lib/time";
+import { focusRangeStarts } from "@/lib/time";
 import type { Project, Task, WorkSession } from "@/lib/work-data";
 
 type FocusTimerProps = {
@@ -13,6 +14,8 @@ type FocusTimerProps = {
   tasks: Task[];
   initialSessions: WorkSession[];
   requestedTaskId: string | null;
+  timezone: string;
+  weekStart: WeekStart;
 };
 
 const selectClass = "h-11 w-full rounded-md border border-border-strong bg-surface px-3 text-sm text-fg outline-none transition-colors duration-fast focus-visible:border-focus focus-visible:ring-2 focus-visible:ring-focus/30";
@@ -43,7 +46,7 @@ function formatDuration(milliseconds: number) {
   return `${hours}h ${minutes}m`;
 }
 
-export function FocusTimer({ projects, tasks, initialSessions, requestedTaskId }: FocusTimerProps) {
+export function FocusTimer({ projects, tasks, initialSessions, requestedTaskId, timezone, weekStart }: FocusTimerProps) {
   const [sessions, setSessions] = useState(initialSessions);
   const [projectId, setProjectId] = useState("");
   const [taskId, setTaskId] = useState("");
@@ -61,9 +64,8 @@ export function FocusTimer({ projects, tasks, initialSessions, requestedTaskId }
   }, []);
 
   useEffect(() => {
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    const week = new Date(today); week.setDate(today.getDate() - ((today.getDay() + 6) % 7));
-    void supabase.from("work_sessions").select("*, project:projects(name), task:tasks(title)").or(`started_at.gte.${week.toISOString()},ended_at.gte.${week.toISOString()},ended_at.is.null`).order("started_at", { ascending: false }).limit(500).then(({ data, error }) => {
+    const range = focusRangeStarts(new Date(), timezone, weekStart);
+    void supabase.from("work_sessions").select("*, project:projects(name), task:tasks(title)").or(`started_at.gte.${new Date(range.week).toISOString()},ended_at.gte.${new Date(range.week).toISOString()},ended_at.is.null`).order("started_at", { ascending: false }).limit(500).then(({ data, error }) => {
       if (error) setNotice({ kind: "error", text: "Could not refresh focus totals. Retry by reloading the page." });
       else setSessions((current) => {
         const merged = new Map(current.map((session) => [session.id, session]));
@@ -72,7 +74,7 @@ export function FocusTimer({ projects, tasks, initialSessions, requestedTaskId }
       });
       setTotalsLoading(false);
     });
-  }, [supabase]);
+  }, [supabase, timezone, weekStart]);
 
   useEffect(() => {
     if (!active) return;
@@ -94,13 +96,12 @@ export function FocusTimer({ projects, tasks, initialSessions, requestedTaskId }
 
   const totals = useMemo(() => {
     const reference = now;
-    const today = new Date(reference); today.setHours(0, 0, 0, 0);
-    const week = new Date(today); week.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+    const range = focusRangeStarts(new Date(reference), timezone, weekStart);
     return {
-      today: sessions.reduce((sum, session) => sum + overlapMs(session, today.getTime(), reference, reference), 0),
-      week: sessions.reduce((sum, session) => sum + overlapMs(session, week.getTime(), reference, reference), 0),
+      today: sessions.reduce((sum, session) => sum + overlapMs(session, range.today, reference, reference), 0),
+      week: sessions.reduce((sum, session) => sum + overlapMs(session, range.week, reference, reference), 0),
     };
-  }, [now, sessions]);
+  }, [now, sessions, timezone, weekStart]);
 
   function taskChanged(nextTaskId: string) {
     setTaskId(nextTaskId);
@@ -178,7 +179,7 @@ export function FocusTimer({ projects, tasks, initialSessions, requestedTaskId }
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.55fr)]">
         <div className="flex flex-col justify-between rounded-lg bg-surface-2/55 p-5 sm:min-h-72 sm:p-6">
           {active ? <>
-            <div><p className="font-mono text-timer font-medium leading-none tracking-timer text-fg tabular-nums" aria-live="off">{formatTimer(elapsedMs(active, now))}</p><p className="mt-4 text-base font-medium text-fg">{active.task?.title ?? "Open focus session"}</p><p className="mt-1 text-sm text-fg-muted">{active.project?.name ?? "No project selected"}</p><p className="mt-5 text-xs text-fg-subtle">Started {new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: OWNER_TIME_ZONE }).format(new Date(active.started_at))}</p></div>{/* taste-skill-ignore: elapsed time is a clock */}
+            <div><p className="font-mono text-timer font-medium leading-none tracking-timer text-fg tabular-nums" aria-live="off">{formatTimer(elapsedMs(active, now))}</p><p className="mt-4 text-base font-medium text-fg">{active.task?.title ?? "Open focus session"}</p><p className="mt-1 text-sm text-fg-muted">{active.project?.name ?? "No project selected"}</p><p className="mt-5 text-xs text-fg-subtle">Started {new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: timezone }).format(new Date(active.started_at))}</p></div>{/* taste-skill-ignore: elapsed time is a clock */}
             <div className="mt-8 flex flex-wrap gap-2"><Button onClick={() => void finishSession()} disabled={pending}><Square aria-hidden="true" className="fill-current" />Finish session</Button><Button variant="ghost" className="text-danger" onClick={() => void cancelSession()} disabled={pending}><Trash2 aria-hidden="true" />Cancel session</Button></div>
           </> : <>
             <div><p className="text-2xl font-semibold tracking-tight text-fg">Ready when you are</p><p className="mt-2 max-w-prose text-sm leading-relaxed text-fg-muted">Choose context if it helps, or start without a project and task.</p><div className="mt-6 grid gap-4 sm:grid-cols-2"><label className="grid gap-2 text-sm font-medium text-fg">Project<select value={projectId} onChange={(event) => { setProjectId(event.target.value); const task = tasks.find((item) => item.id === taskId); if (task?.project_id && task.project_id !== event.target.value) setTaskId(""); }} className={selectClass}><option value="">No project</option>{projects.map((project) => <option key={project.id} value={project.id} disabled={Boolean(project.archived_at)}>{project.name}{project.archived_at ? " (archived)" : ""}</option>)}</select></label><label className="grid gap-2 text-sm font-medium text-fg">Task<select id="focus-task" value={taskId} onChange={(event) => taskChanged(event.target.value)} className={selectClass}><option value="">No task</option>{tasks.filter((task) => !projectId || !task.project_id || task.project_id === projectId).map((task) => <option key={task.id} value={task.id}>{task.title}</option>)}</select></label></div></div>
@@ -188,7 +189,7 @@ export function FocusTimer({ projects, tasks, initialSessions, requestedTaskId }
 
         <aside className="space-y-4" aria-label="Focus totals">
           <div className="grid grid-cols-2 overflow-hidden rounded-lg border border-border bg-surface" aria-busy={totalsLoading}><div className="p-4"><p className="text-xs text-fg-subtle">Today</p><p className="mt-2 text-xl font-semibold text-fg tabular-nums">{totalsLoading ? <span className="inline-block h-6 w-12 animate-pulse rounded bg-surface-3"><span className="sr-only">Loading today total</span></span> : formatDuration(totals.today)}</p></div><div className="border-l border-border p-4"><p className="text-xs text-fg-subtle">This week</p><p className="mt-2 text-xl font-semibold text-fg tabular-nums">{totalsLoading ? <span className="inline-block h-6 w-12 animate-pulse rounded bg-surface-3"><span className="sr-only">Loading weekly total</span></span> : formatDuration(totals.week)}</p></div></div>
-          <div id="focus-history" className="scroll-mt-header rounded-lg border border-border bg-surface p-4"><div className="mb-3 flex items-center justify-between"><h3 className="text-sm font-semibold text-fg">Recent sessions</h3><Clock3 aria-hidden="true" className="size-4 text-fg-subtle" /></div>{completed.length === 0 ? <div className="rounded-md border border-dashed border-border-strong p-4 text-center"><p className="text-sm font-medium text-fg">No completed sessions</p><p className="mt-1 text-xs text-fg-subtle">Finished focus time will appear here.</p></div> : <ul className="divide-y divide-border">{completed.map((session) => <li key={session.id} className="flex items-start gap-3 py-3"><span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-success-soft text-success"><Check aria-hidden="true" className="size-3" /></span><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-fg">{session.task?.title ?? session.project?.name ?? "Open focus session"}</p><p className="mt-1 truncate text-xs text-fg-subtle">{formatDuration(elapsedMs(session, now))} · {new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: OWNER_TIME_ZONE }).format(new Date(session.started_at))}</p></div></li>)}</ul>}</div>
+          <div id="focus-history" className="scroll-mt-header rounded-lg border border-border bg-surface p-4"><div className="mb-3 flex items-center justify-between"><h3 className="text-sm font-semibold text-fg">Recent sessions</h3><Clock3 aria-hidden="true" className="size-4 text-fg-subtle" /></div>{completed.length === 0 ? <div className="rounded-md border border-dashed border-border-strong p-4 text-center"><p className="text-sm font-medium text-fg">No completed sessions</p><p className="mt-1 text-xs text-fg-subtle">Finished focus time will appear here.</p></div> : <ul className="divide-y divide-border">{completed.map((session) => <li key={session.id} className="flex items-start gap-3 py-3"><span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-success-soft text-success"><Check aria-hidden="true" className="size-3" /></span><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-fg">{session.task?.title ?? session.project?.name ?? "Open focus session"}</p><p className="mt-1 truncate text-xs text-fg-subtle">{formatDuration(elapsedMs(session, now))} · {new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: timezone }).format(new Date(session.started_at))}</p></div></li>)}</ul>}</div>
         </aside>
       </div>
     </section>

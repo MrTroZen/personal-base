@@ -61,10 +61,30 @@ A deployed Next.js App Router application provides an owner-protected, Supabase-
 - Confirmed only `.env.example` is tracked, `.env.local`, `.env.owner-test.local`, and `.vercel` remain ignored, and no service-role key, password, test credential, or application secret is committed.
 - Pushed the completed product to GitHub `main` in commit `4583adf` and confirmed the existing Vercel project automatically deployed that exact commit to production. Vercel reports the deployment `Ready`; its build completed compilation, TypeScript, route generation, and output deployment successfully.
 - Verified the production alias at `https://personal-base-iota.vercel.app`: owner login works, the authenticated dashboard loads, the session survives refresh, sign-out returns to the owner screen, and anonymous private-route responses contain the expected Next.js redirect to `/sign-in`.
+- Added an owner-only `user_preferences` table for appearance (`system`, `light`, `dark`), default currency, IANA timezone, and Monday/Sunday week start; enabled RLS, denied anonymous access, and applied the migration to the linked hosted Supabase project.
+- Added `/settings` with compact preference controls, account email display, and sign-out. Appearance applies immediately without a theme flash, while currency, timezone, and week start now drive money formatting, local date boundaries, focus totals, and focus history.
+- Added `/archive` using the existing `projects.archived_at` behavior. Archived projects show linked task, work-session, note, and transaction counts and can be restored by clearing only `archived_at`, leaving all historical rows intact.
+- Added `/search` with fast in-memory substring search across project names/descriptions, task titles/descriptions, and note titles/content. It uses existing owner-scoped Supabase reads and adds no embeddings or AI dependency.
+- Added `/data` with live owner record counts and a client-generated JSON export for projects, tasks, work sessions, notes, and transactions. Added `/about` with version, build commit when available, and the private single-owner architecture summary.
+- Added Settings and Search to desktop/mobile navigation plus quiet secondary navigation for Preferences, Archive, Data, and About without redesigning the established shell.
+- Verified the hosted migration list matches all three local migrations and confirmed the new preference migration is applied remotely.
+- Verified against real Supabase with temporary owner-scoped records that were removed afterward: all appearance modes, persisted currency/timezone/week-start preferences, currency use in Money, archived history counts, restore persistence, project/task/note search, all five JSON export datasets, About metadata, and anonymous preference read/write denial.
+- Verified the production build in system Edge at 375, 768, and 1280 px across Settings, Archive, Search, Data, and About with reduced motion: no horizontal overflow, framework overlay, relevant console error/warning, or automated WCAG A/AA violation.
+- Fixed two review findings before release: removed forced search autofocus on mobile and added field-linked currency/timezone errors with focus moving to the first invalid setting.
+- Ran the app-screen Taste lint across all supporting surfaces with 0 failures; its only warning is the intentional shadow on the skip link while it floats above content. Reviewed the changed surfaces against the current Vercel Web Interface Guidelines.
+- Reverified `npm run build`; removed the temporary QA script after the final browser pass so it cannot pollute lint or the repository.
+- Documented the Money V2 product direction in `docs/MONEY.md`, including the shared period model, investment semantics, summaries, visualizations, categories, project linkage, proposed page structure, and explicit exclusions before implementation began.
+- Added and deployed the forward-only Money V2 foundation migration after a successful linked-project dry run. It preserves the `transactions` table and every existing row, extends `kind` with `investment`, renames `occurred_on` to `transaction_date`, renames the supporting date index, and adds a required text `category` defaulted to `Other`.
+- Kept the existing optional project ownership foreign key and owner-only RLS policy unchanged; anonymous transaction reads expose no owner row and anonymous writes remain denied.
+- Chose one constrained text category field instead of a category-management table. The form offers the documented defaults plus useful investment suggestions through a datalist while still accepting a custom value up to 60 characters.
+- Updated Money create/edit/list behavior for investment, category, editable financial date, and project-linked or unlinked transactions. Updated current-month and project summaries so investment is separate from expense and net cash flow subtracts both.
+- Verified the pre-existing transaction count and ID hash were identical before and after migration, and confirmed every existing row retained a financial date and received the safe `Other` category.
+- Verified against real Supabase with temporary owner-scoped data that were removed afterward: income/expense/investment create/read/update/delete, category and `transaction_date` persistence, linked and unlinked project behavior, refresh persistence, and RLS denial for anonymous access.
+- Verified the production build in system Edge at 1280 × 900 and 390 × 844 with reduced motion and dark mode: no horizontal overflow, relevant console errors, or automated WCAG A/AA violations. App-screen Taste lint reported 0 failures and 0 warnings.
 
 ## Currently working on
 
-- `CURRENT` in `docs/PLAN.md`: use the finished deployed workspace in normal daily work and record concrete friction before choosing another feature.
+- `CURRENT` in `docs/PLAN.md`: add one shared Money period control and make the existing summary, project figures, and transaction results respect it, without adding charts yet.
 
 ## Known issues
 
@@ -73,7 +93,7 @@ A deployed Next.js App Router application provides an owner-protected, Supabase-
 
 ## Next exact task
 
-Use the deployed workspace for several normal workdays. Test a real daily loop—choose or create a task, start and finish focus, capture one note, and record one transaction—then log only concrete friction or failures before planning another feature. Do not expand into budgets, recurring payments, rich notes, or timer pause/resume yet.
+Implement the shared Money period state and query boundaries for This month, Last month, 3 months, 6 months, Year to date, 1 year, All time, and Custom range, including previous/next month navigation. Apply that one period to the existing summary, project figures, and transaction list; do not add charts, comparison metrics, or breakdown panels yet.
 
 ## Technical decisions
 
@@ -88,6 +108,9 @@ Use the deployed workspace for several normal workdays. Test a real daily loop�
 - A partial unique index on `work_sessions (user_id) where ended_at is null` enforces one active session per owner even across tabs; the UI also restores the winning active row after a concurrent-start conflict.
 - Focus elapsed time is never stored as a client counter. The UI derives it from persisted `started_at`/`ended_at` timestamps so refresh and reopen do not reset it.
 - Notes remain plain text/Markdown-lite source rather than rendered rich content; project links are optional and archived links remain visible but cannot be newly selected.
-- Transaction amounts use the schema's positive numeric value plus `kind` for polarity. Because the schema has no currency field, the UI formats fixed-decimal locale-aware values without inventing a currency symbol.
+- Transaction amounts remain positive numeric values; `kind` distinguishes income, expense, and investment. `transaction_date` is the financial date source, `category` is a required customizable text value, and the UI uses the owner's display-currency preference without adding a per-transaction currency field.
 - Dashboard due-date and month boundaries use the single owner's configured `Asia/Dhaka` timezone rather than server UTC, preventing midnight-boundary summary errors.
+- Owner preferences live in one `user_preferences` row keyed by `auth.users.id`; the browser uses the publishable client under the same owner-only RLS boundary, with no service-role access.
+- Appearance persists in Supabase and mirrors to local storage only for pre-paint theme application. `system` removes the manual `data-theme` override.
+- Search remains a bounded single-owner client filter over ordinary Supabase rows, and export remains an on-demand JSON snapshot generated in the browser. No import, indexing service, embeddings, or backup system was added.
 - Desktop-first dark UI, with accessible responsive behavior and restrained motion.

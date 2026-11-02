@@ -13,7 +13,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var a=localStorage.getItem('personal-base-appearance');if(a==='light'||a==='dark')document.documentElement.dataset.theme=a;}catch(e){}})()` }} />
+      </head>
       <body>{children}</body>
     </html>
   );

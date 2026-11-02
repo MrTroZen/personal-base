@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { FocusTimer } from "@/components/focus-timer";
 import { Button } from "@/components/ui/button";
+import type { WeekStart } from "@/lib/preferences";
 import { ownerDateKey } from "@/lib/time";
 import type { Note, Project, Task, Transaction, WorkSession } from "@/lib/work-data";
 
@@ -13,11 +14,14 @@ type DashboardHomeProps = {
   transactions: Transaction[];
   notes: Note[];
   requestedTaskId: string | null;
+  currency: string;
+  timezone: string;
+  weekStart: WeekStart;
   initialError: string | null;
 };
 
-function formatAmount(value: number) {
-  return new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+function formatAmount(value: number, currency: string) {
+  return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(value);
 }
 
 function taskUrgency(task: Task, today: string) {
@@ -30,9 +34,9 @@ function taskUrgency(task: Task, today: string) {
   return { label: "In progress", className: "text-accent", rank: 3 };
 }
 
-export function DashboardHome({ projects, tasks, sessions, transactions, notes, requestedTaskId, initialError }: DashboardHomeProps) {
+export function DashboardHome({ projects, tasks, sessions, transactions, notes, requestedTaskId, currency, timezone, weekStart, initialError }: DashboardHomeProps) {
   const now = new Date();
-  const today = ownerDateKey(now);
+  const today = ownerDateKey(now, timezone);
   const month = today.slice(0, 7);
   const activeProjects = projects.filter((project) => !project.archived_at);
   const projectById = new Map(projects.map((project) => [project.id, project]));
@@ -40,14 +44,15 @@ export function DashboardHome({ projects, tasks, sessions, transactions, notes, 
     .filter((task) => task.status !== "done" && (task.status === "in_progress" || Boolean(task.due_at)))
     .sort((a, b) => taskUrgency(a, today).rank - taskUrgency(b, today).rank || (a.due_at ?? "9999").localeCompare(b.due_at ?? "9999"))
     .slice(0, 5);
-  const monthTransactions = transactions.filter((transaction) => transaction.occurred_on.startsWith(month));
+  const monthTransactions = transactions.filter((transaction) => transaction.transaction_date.startsWith(month));
   const money = monthTransactions.reduce((totals, transaction) => {
     const amount = Number(transaction.amount);
     if (transaction.kind === "income") totals.income += amount;
-    else totals.expenses += amount;
+    else if (transaction.kind === "expense") totals.expenses += amount;
+    else totals.invested += amount;
     return totals;
-  }, { income: 0, expenses: 0 });
-  const net = money.income - money.expenses;
+  }, { income: 0, expenses: 0, invested: 0 });
+  const net = money.income - money.expenses - money.invested;
 
   return (
     <div className="space-y-6">
@@ -58,7 +63,7 @@ export function DashboardHome({ projects, tasks, sessions, transactions, notes, 
 
       {initialError && <div role="alert" className="rounded-md border border-danger/40 bg-danger-soft p-3 text-sm text-danger">Some dashboard data could not be loaded. Refresh to try again.</div>}
 
-      <FocusTimer projects={projects} tasks={tasks} initialSessions={sessions} requestedTaskId={requestedTaskId} />
+      <FocusTimer projects={projects} tasks={tasks} initialSessions={sessions} requestedTaskId={requestedTaskId} timezone={timezone} weekStart={weekStart} />
 
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(19rem,0.65fr)]">
         <section className="rounded-xl border border-border bg-surface" aria-labelledby="attention-title">
@@ -75,7 +80,7 @@ export function DashboardHome({ projects, tasks, sessions, transactions, notes, 
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(19rem,0.65fr)]">
         <section className="rounded-xl border border-border bg-surface" aria-labelledby="month-money-title">
           <div className="flex items-center justify-between gap-4 border-b border-border px-4 py-3 sm:px-5"><div><h2 id="month-money-title" className="font-semibold text-fg">This month</h2><p className="text-xs text-fg-subtle">{monthTransactions.length} transaction{monthTransactions.length === 1 ? "" : "s"}</p></div><Button asChild variant="ghost" size="sm"><Link href="/money">Open money<ArrowRight aria-hidden="true" /></Link></Button></div>
-          <dl className="grid grid-cols-1 divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0"><div className="p-4 sm:p-5"><dt className="text-xs text-fg-subtle">Income</dt><dd className="mt-2 text-xl font-semibold text-success tabular-nums">+{formatAmount(money.income)}</dd></div><div className="p-4 sm:p-5"><dt className="text-xs text-fg-subtle">Expenses</dt><dd className="mt-2 text-xl font-semibold text-fg tabular-nums">−{formatAmount(money.expenses)}</dd></div><div className="p-4 sm:p-5"><dt className="text-xs text-fg-subtle">Net</dt><dd className={`mt-2 text-xl font-semibold tabular-nums ${net < 0 ? "text-danger" : "text-fg"}`}>{net > 0 ? "+" : net < 0 ? "−" : ""}{formatAmount(Math.abs(net))}</dd></div></dl>
+          <dl className="grid grid-cols-1 divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0"><div className="p-4 sm:p-5"><dt className="text-xs text-fg-subtle">Income</dt><dd className="mt-2 text-xl font-semibold text-success tabular-nums">+{formatAmount(money.income, currency)}</dd></div><div className="p-4 sm:p-5"><dt className="text-xs text-fg-subtle">Expenses</dt><dd className="mt-2 text-xl font-semibold text-fg tabular-nums">−{formatAmount(money.expenses, currency)}</dd></div><div className="p-4 sm:p-5"><dt className="text-xs text-fg-subtle">Net</dt><dd className={`mt-2 text-xl font-semibold tabular-nums ${net < 0 ? "text-danger" : "text-fg"}`}>{net > 0 ? "+" : net < 0 ? "−" : ""}{formatAmount(Math.abs(net), currency)}</dd></div></dl>
         </section>
 
         <section className="rounded-xl border border-border bg-surface" aria-labelledby="recent-notes-title">

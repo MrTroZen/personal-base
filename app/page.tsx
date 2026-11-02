@@ -5,6 +5,7 @@ import { signOut } from "@/app/auth/actions";
 import { AppShell } from "@/components/app-shell";
 import { DashboardHome } from "@/components/dashboard-home";
 import { getOwnerIdentity } from "@/lib/auth";
+import { preferencesWithDefaults, type UserPreferences } from "@/lib/preferences";
 import { createClient } from "@/lib/supabase/server";
 import { nextMonthStart, ownerDateKey } from "@/lib/time";
 import type { Note, Project, Task, Transaction, WorkSession } from "@/lib/work-data";
@@ -18,13 +19,15 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   const { focusTask } = await searchParams;
   const supabase = await createClient();
-  const monthStart = `${ownerDateKey().slice(0, 7)}-01`;
+  const { data: preferenceRow, error: preferencesError } = await supabase.from("user_preferences").select("*").maybeSingle();
+  const preferences = preferencesWithDefaults(preferenceRow as UserPreferences | null);
+  const monthStart = `${ownerDateKey(new Date(), preferences.timezone).slice(0, 7)}-01`;
   const monthEnd = nextMonthStart(monthStart.slice(0, 7));
   const [{ data: projects, error: projectsError }, { data: tasks, error: tasksError }, { data: sessions, error: sessionsError }, { data: transactions, error: transactionsError }, { data: notes, error: notesError }] = await Promise.all([
     supabase.from("projects").select("*").order("updated_at", { ascending: false }),
     supabase.from("tasks").select("*").order("sort_order", { ascending: true }).order("created_at", { ascending: true }),
     supabase.from("work_sessions").select("*, project:projects(name), task:tasks(title)").order("started_at", { ascending: false }).limit(50),
-    supabase.from("transactions").select("*").gte("occurred_on", monthStart).lt("occurred_on", monthEnd).order("occurred_on", { ascending: false }),
+    supabase.from("transactions").select("*").gte("transaction_date", monthStart).lt("transaction_date", monthEnd).order("transaction_date", { ascending: false }),
     supabase.from("notes").select("*, project:projects(name)").order("updated_at", { ascending: false }).limit(3),
   ]);
 
@@ -37,7 +40,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         transactions={(transactions ?? []) as Transaction[]}
         notes={(notes ?? []) as unknown as Note[]}
         requestedTaskId={focusTask ?? null}
-        initialError={projectsError?.message ?? tasksError?.message ?? sessionsError?.message ?? transactionsError?.message ?? notesError?.message ?? null}
+        currency={preferences.currency}
+        timezone={preferences.timezone}
+        weekStart={preferences.week_start}
+        initialError={preferencesError?.message ?? projectsError?.message ?? tasksError?.message ?? sessionsError?.message ?? transactionsError?.message ?? notesError?.message ?? null}
       />
     </AppShell>
   );

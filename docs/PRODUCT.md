@@ -10,7 +10,7 @@ A private, single-user dashboard for organizing personal work in one connected p
 - **Projects:** project overview connecting its tasks, work sessions, notes, and transactions.
 - **Tasks / Kanban:** simple task capture, prioritization, and movement through a small set of statuses.
 - **Focus timer:** prominent live timer tied to an optional project/task; completed runs become work sessions.
-- **Money:** lightweight income and expense tracking, optionally linked to a project.
+- **Money:** a visual personal finance dashboard connecting income, expenses, investments, cash flow, and project finances. `docs/MONEY.md` is the detailed product source of truth; its Money V2 direction is not fully implemented yet.
 - **Notes:** fast personal notes, optionally linked to a project.
 - **Authentication:** simple Supabase email authentication for one private owner account; protect all application data and routes.
 
